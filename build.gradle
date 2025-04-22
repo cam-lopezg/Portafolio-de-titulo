@@ -21,6 +21,8 @@ configurations {
 
 repositories {
 	mavenCentral()
+	// Usamos google() en lugar de maven { url 'https://maven.google.com' }
+	google()
 }
 
 dependencies {
@@ -31,6 +33,20 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	
+	// Firebase dependencies - con versión actualizada
+	implementation 'com.google.firebase:firebase-admin:9.2.0'
+	// Agregar explícitamente la dependencia de Firestore
+	implementation 'com.google.cloud:google-cloud-firestore:3.19.0'
+}
+
+// Configuración de argumentos JVM para permitir acceso a módulos de tiempo
+tasks.named('bootRun') {
+    jvmArgs = [
+        '--add-opens=java.base/java.time=ALL-UNNAMED',
+        '--add-opens=java.base/java.time.chrono=ALL-UNNAMED',
+        '--add-opens=java.base/java.time.format=ALL-UNNAMED'
+    ]
 }
 
 tasks.named('test') {

@@ -53,6 +53,7 @@ Application Properties with sensitive data
 src/main/resources/application-local.properties
 src/main/resources/application-dev.properties
 src/main/resources/application-prod.properties
+src/main/resources/firebase-service-account.json
 
 H2 database files
 *.db
