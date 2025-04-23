@@ -147,4 +147,41 @@ public class FirestoreUserRepository {
             throw new RuntimeException("Error al actualizar campos de usuario en Firestore", e);
         }
     }
+
+    /**
+     * Actualiza un usuario usando el objeto User directamente.
+     * Busca el documento por el email del usuario.
+     */
+    public void updateUser(User user) {
+        try {
+            logger.info("Actualizando usuario con ID: " + user.getId() + " y email: " + user.getEmail());
+
+            // Buscar el documento del usuario por email
+            ApiFuture<QuerySnapshot> future = firestore.collection(COLLECTION_NAME)
+                    .whereEqualTo("email", user.getEmail())
+                    .limit(1)
+                    .get();
+
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            if (!documents.isEmpty()) {
+                String documentId = documents.get(0).getId();
+                logger.info("Documento encontrado para usuario con ID: " + documentId);
+
+                // Actualizar el documento
+                ApiFuture<WriteResult> writeResult = firestore.collection(COLLECTION_NAME).document(documentId)
+                        .set(user);
+                WriteResult result = writeResult.get();
+
+                logger.info("Usuario actualizado con éxito. Timestamp: " + result.getUpdateTime());
+            } else {
+                logger.warning("No se pudo encontrar el documento para el usuario con email: " + user.getEmail());
+                throw new RuntimeException(
+                        "No se pudo encontrar el documento para el usuario con email: " + user.getEmail());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            logger.log(Level.SEVERE, "Error al actualizar usuario en Firestore: " + e.getMessage(), e);
+            throw new RuntimeException("Error al actualizar usuario en Firestore", e);
+        }
+    }
 }

@@ -1,5 +1,7 @@
 package cl.pets.patitaspet.user.controller;
 
+import cl.pets.patitaspet.user.dto.UserLoginRequest;
+import cl.pets.patitaspet.user.dto.UserLoginResponse;
 import cl.pets.patitaspet.user.dto.UserRegisterRequest;
 import cl.pets.patitaspet.user.entity.User;
 import cl.pets.patitaspet.user.service.UserService;
@@ -45,6 +47,24 @@ public class UserController {
         } catch (Exception e) {
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "Error al registrar usuario: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody UserLoginRequest userLoginRequest) {
+        try {
+            UserLoginResponse response = userService.loginUser(userLoginRequest);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error durante el login: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }

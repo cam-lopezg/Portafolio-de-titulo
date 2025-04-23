@@ -6,8 +6,6 @@ import cl.pets.patitaspet.user.entity.User;
 import cl.pets.patitaspet.appointment.entity.PetAppointment;
 import cl.pets.patitaspet.appointment.entity.Reminder;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -18,10 +16,13 @@ public class Pet {
     private String name;
     private Species species;
     private Breed breed;
-    private LocalDate birthdate;
+
+    // Usar solo String para fechas - esto elimina el problema de serialización con
+    // Firestore
+    private String birthdateStr;
     private Gender gender;
     private String photoUrl;
-    private LocalDateTime createdAt;
+    private String createdAtStr;
 
     private List<PetVaccination> vaccinations;
     private List<Reminder> reminders;
