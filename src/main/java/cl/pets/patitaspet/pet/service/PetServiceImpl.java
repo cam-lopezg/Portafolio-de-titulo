@@ -101,7 +101,10 @@ public class PetServiceImpl implements PetService {
         pet.setCreatedAtStr(createdAtString);
         logger.info("Fecha de creación establecida: " + createdAtString);
 
-        pet.setUser(user);
+        // Guardar solo el ID del usuario en lugar del objeto completo
+        pet.setUserId(user.getId());
+        pet.setOwnerName(user.getName()); // Usamos getName() en vez de getFullName() que no existe
+        logger.info("Referencia al usuario establecida por ID: " + user.getId());
 
         // Inicializar listas
         pet.setVaccinations(new ArrayList<>());
@@ -159,10 +162,7 @@ public class PetServiceImpl implements PetService {
             response.setGender(pet.getGender());
             response.setPhotoUrl(pet.getPhotoUrl());
             response.setCreatedAt(pet.getCreatedAtStr());
-
-            if (pet.getUser() != null) {
-                response.setUserId(pet.getUser().getId());
-            }
+            response.setUserId(pet.getUserId());
 
             logger.info("Respuesta de creación de mascota generada con ID: " + response.getId());
 
@@ -217,10 +217,7 @@ public class PetServiceImpl implements PetService {
                         response.setGender(pet.getGender());
                         response.setPhotoUrl(pet.getPhotoUrl());
                         response.setCreatedAt(pet.getCreatedAtStr());
-
-                        if (pet.getUser() != null) {
-                            response.setUserId(pet.getUser().getId());
-                        }
+                        response.setUserId(pet.getUserId());
 
                         return response;
                     })
@@ -255,8 +252,7 @@ public class PetServiceImpl implements PetService {
         logger.info("Usuario verificado con ID: " + currentUser.getId());
 
         try {
-            // Buscar todas las mascotas del usuario por su ID para evitar accesos no
-            // autorizados
+            // Buscar la mascota por ID
             logger.info("Buscando mascota con ID: " + petId);
             Optional<Pet> petOpt = petRepository.findPetById(petId.toString());
 
@@ -269,14 +265,14 @@ public class PetServiceImpl implements PetService {
             logger.info("Mascota encontrada: " + pet.getName());
 
             // Verificar que la mascota pertenece al usuario actual
-            if (pet.getUser() == null) {
+            if (pet.getUserId() == null) {
                 logger.warning("La mascota no tiene usuario asociado. ID mascota: " + petId);
                 throw new AccessDeniedException("No tienes permiso para acceder a esta mascota.");
             }
 
-            if (!pet.getUser().getId().equals(currentUser.getId())) {
+            if (!pet.getUserId().equals(currentUser.getId())) {
                 logger.warning("Intento de acceso no autorizado. Usuario: " + currentUser.getId() +
-                        " intentó acceder a mascota que pertenece a usuario: " + pet.getUser().getId());
+                        " intentó acceder a mascota que pertenece a usuario: " + pet.getUserId());
                 throw new AccessDeniedException("No tienes permiso para acceder a esta mascota.");
             }
 
@@ -305,10 +301,7 @@ public class PetServiceImpl implements PetService {
             response.setGender(pet.getGender());
             response.setPhotoUrl(pet.getPhotoUrl());
             response.setCreatedAt(pet.getCreatedAtStr());
-
-            if (pet.getUser() != null) {
-                response.setUserId(pet.getUser().getId());
-            }
+            response.setUserId(pet.getUserId());
 
             return response;
 

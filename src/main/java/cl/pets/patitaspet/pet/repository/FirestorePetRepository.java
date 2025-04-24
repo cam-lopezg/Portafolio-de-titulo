@@ -38,8 +38,6 @@ public class FirestorePetRepository {
                 long numericId = System.currentTimeMillis();
                 pet.setId(numericId);
                 logger.info("ID numérico asignado a la mascota: " + numericId);
-            } else {
-                logger.info("La mascota ya tiene ID asignado: " + pet.getId());
             }
 
             // Guardar la mascota en Firestore
@@ -49,7 +47,7 @@ public class FirestorePetRepository {
             logger.info("Datos de mascota a guardar - Nombre: " + pet.getName() +
                     ", Especie: " + pet.getSpecies() +
                     ", ID: " + pet.getId() +
-                    ", Usuario ID: " + (pet.getUser() != null ? pet.getUser().getId() : "null"));
+                    ", Usuario ID: " + pet.getUserId());
 
             ApiFuture<WriteResult> result = docRef.set(pet);
             result.get();
@@ -79,11 +77,7 @@ public class FirestorePetRepository {
 
                 if (pet != null) {
                     logger.info("Mascota encontrada: " + pet.getName() + ", ID: " + pet.getId());
-                    if (pet.getUser() != null) {
-                        logger.info("Mascota pertenece al usuario: " + pet.getUser().getId());
-                    } else {
-                        logger.warning("La mascota no tiene usuario asociado");
-                    }
+                    logger.info("Mascota pertenece al usuario: " + pet.getUserId());
                 } else {
                     logger.warning("Error al convertir documento a objeto Pet");
                 }
@@ -102,10 +96,11 @@ public class FirestorePetRepository {
     public List<Pet> findPetsByUserId(Long userId) {
         logger.info("Buscando mascotas para el usuario con ID: " + userId);
         try {
-            logger.info("Ejecutando query: whereEqualTo(\"user.id\", " + userId + ")");
+            // Actualizado para usar el nuevo campo userId en lugar de user.id
+            logger.info("Ejecutando query: whereEqualTo(\"userId\", " + userId + ")");
 
             ApiFuture<QuerySnapshot> future = firestore.collection(COLLECTION_NAME)
-                    .whereEqualTo("user.id", userId)
+                    .whereEqualTo("userId", userId)
                     .get();
 
             List<QueryDocumentSnapshot> documents = future.get().getDocuments();

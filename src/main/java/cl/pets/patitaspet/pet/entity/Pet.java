@@ -2,7 +2,6 @@ package cl.pets.patitaspet.pet.entity;
 
 import lombok.Getter;
 import lombok.Setter;
-import cl.pets.patitaspet.user.entity.User;
 import cl.pets.patitaspet.appointment.entity.PetAppointment;
 import cl.pets.patitaspet.appointment.entity.Reminder;
 
@@ -12,7 +11,12 @@ import java.util.List;
 @Setter
 public class Pet {
     private Long id;
-    private User user;
+    // Se enlaza solo el ID del dueño para optimizar la bdd
+    private Long userId;
+    // Opcional: podemos mantener algunos datos básicos para mostrar sin necesidad
+    // de consultas adicionales
+    private String ownerName; // Esto es solo para mostrar información básica en la bdd, no se usa en la app
+
     private String name;
     private Species species;
     private Breed breed;
