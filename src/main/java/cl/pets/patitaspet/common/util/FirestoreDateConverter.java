@@ -1,5 +1,6 @@
 package cl.pets.patitaspet.common.util;
 
+import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -7,23 +8,19 @@ import java.util.logging.Logger;
 
 /**
  * Clase utilitaria para convertir objetos LocalDate y LocalDateTime a un
- * formato
- * que Firestore pueda manejar sin problemas de serialización
+ * formato que Firestore pueda manejar sin problemas de serialización
  */
+@Component
 public class FirestoreDateConverter {
 
     private static final Logger logger = Logger.getLogger(FirestoreDateConverter.class.getName());
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
-    private FirestoreDateConverter() {
-        // Constructor privado para evitar instanciación
-    }
-
     /**
      * Convierte LocalDate a String para almacenar en Firestore
      */
-    public static String toString(LocalDate date) {
+    public String toString(LocalDate date) {
         if (date == null) {
             return null;
         }
@@ -33,7 +30,7 @@ public class FirestoreDateConverter {
     /**
      * Convierte LocalDateTime a String para almacenar en Firestore
      */
-    public static String toString(LocalDateTime dateTime) {
+    public String toString(LocalDateTime dateTime) {
         if (dateTime == null) {
             return null;
         }
@@ -43,7 +40,7 @@ public class FirestoreDateConverter {
     /**
      * Convierte String a LocalDate al recuperar de Firestore
      */
-    public static LocalDate toLocalDate(String dateStr) {
+    public LocalDate toLocalDate(String dateStr) {
         if (dateStr == null || dateStr.isEmpty()) {
             return null;
         }
@@ -58,7 +55,7 @@ public class FirestoreDateConverter {
     /**
      * Convierte String a LocalDateTime al recuperar de Firestore
      */
-    public static LocalDateTime toLocalDateTime(String dateTimeStr) {
+    public LocalDateTime toLocalDateTime(String dateTimeStr) {
         if (dateTimeStr == null || dateTimeStr.isEmpty()) {
             return null;
         }

@@ -62,8 +62,12 @@ public class FirestorePetRepository {
         }
     }
 
+    /**
+     * Busca una mascota por su Document ID en Firestore
+     * Este método busca directamente un documento específico en Firestore
+     */
     public Optional<Pet> findPetById(String petId) {
-        logger.info("Buscando mascota por ID: " + petId);
+        logger.info("Buscando mascota por Document ID: " + petId);
         try {
             DocumentReference docRef = firestore.collection(COLLECTION_NAME).document(petId);
             logger.info("Referencia de documento obtenida para ID: " + petId);
@@ -72,11 +76,11 @@ public class FirestorePetRepository {
             DocumentSnapshot document = future.get();
 
             if (document.exists()) {
-                logger.info("Documento encontrado para mascota ID: " + petId);
+                logger.info("Documento encontrado para mascota Document ID: " + petId);
                 Pet pet = document.toObject(Pet.class);
 
                 if (pet != null) {
-                    logger.info("Mascota encontrada: " + pet.getName() + ", ID: " + pet.getId());
+                    logger.info("Mascota encontrada: " + pet.getName() + ", ID numérico interno: " + pet.getId());
                     logger.info("Mascota pertenece al usuario: " + pet.getUserId());
                 } else {
                     logger.warning("Error al convertir documento a objeto Pet");
@@ -84,12 +88,48 @@ public class FirestorePetRepository {
 
                 return Optional.ofNullable(pet);
             } else {
-                logger.warning("No se encontró documento para mascota ID: " + petId);
+                logger.warning("No se encontró documento para mascota Document ID: " + petId);
                 return Optional.empty();
             }
         } catch (InterruptedException | ExecutionException e) {
-            logger.log(Level.SEVERE, "Error al buscar mascota por ID en Firestore: " + e.getMessage(), e);
-            throw new RuntimeException("Error al buscar mascota por ID en Firestore", e);
+            logger.log(Level.SEVERE, "Error al buscar mascota por Document ID en Firestore: " + e.getMessage(), e);
+            throw new RuntimeException("Error al buscar mascota por Document ID en Firestore", e);
+        }
+    }
+
+    /**
+     * Busca una mascota por su ID numérico interno
+     * Este método realiza una consulta por el campo "id" que contiene el valor
+     * numérico
+     */
+    public Optional<Pet> findPetByNumericId(Long numericId) {
+        logger.info("Buscando mascota por ID numérico interno: " + numericId);
+        try {
+            // Crear consulta para buscar documento por el campo id
+            Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("id", numericId).limit(1);
+
+            ApiFuture<QuerySnapshot> future = query.get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            if (!documents.isEmpty()) {
+                DocumentSnapshot document = documents.get(0);
+                Pet pet = document.toObject(Pet.class);
+
+                if (pet != null) {
+                    logger.info("Mascota encontrada por ID numérico: " + pet.getName() +
+                            ", Document ID: " + document.getId());
+                    return Optional.of(pet);
+                } else {
+                    logger.warning("Error al convertir documento a objeto Pet");
+                    return Optional.empty();
+                }
+            } else {
+                logger.warning("No se encontraron mascotas con ID numérico: " + numericId);
+                return Optional.empty();
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            logger.log(Level.SEVERE, "Error al buscar mascota por ID numérico en Firestore: " + e.getMessage(), e);
+            throw new RuntimeException("Error al buscar mascota por ID numérico en Firestore", e);
         }
     }
 
