@@ -184,4 +184,36 @@ public class FirestoreUserRepository {
             throw new RuntimeException("Error al actualizar usuario en Firestore", e);
         }
     }
+
+    /**
+     * Busca un usuario por su ID numérico (el campo "id" dentro del documento).
+     * 
+     * @param numericId ID numérico del usuario
+     * @return Optional con el usuario si existe, empty si no
+     */
+    public Optional<User> findUserByNumericId(Long numericId) {
+        try {
+            logger.info("Buscando usuario por ID numérico: " + numericId);
+
+            // Crear consulta para buscar usuario por su campo id numérico
+            ApiFuture<QuerySnapshot> future = firestore.collection(COLLECTION_NAME)
+                    .whereEqualTo("id", numericId)
+                    .limit(1)
+                    .get();
+
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            if (!documents.isEmpty()) {
+                User user = documents.get(0).toObject(User.class);
+                logger.info("Usuario encontrado por ID numérico: " + numericId);
+                return Optional.ofNullable(user);
+            } else {
+                logger.warning("No se encontró usuario con ID numérico: " + numericId);
+                return Optional.empty();
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            logger.log(Level.SEVERE, "Error al buscar usuario por ID numérico en Firestore: " + e.getMessage(), e);
+            throw new RuntimeException("Error al buscar usuario por ID numérico en Firestore", e);
+        }
+    }
 }

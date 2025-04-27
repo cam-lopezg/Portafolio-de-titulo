@@ -6,6 +6,7 @@ import cl.pets.patitaspet.common.util.PasswordEncoder;
 import cl.pets.patitaspet.user.dto.UserLoginRequest;
 import cl.pets.patitaspet.user.dto.UserLoginResponse;
 import cl.pets.patitaspet.user.dto.UserRegisterRequest;
+import cl.pets.patitaspet.user.dto.UserUpdateRequest;
 import cl.pets.patitaspet.user.entity.User;
 import cl.pets.patitaspet.user.entity.UserLogin;
 import cl.pets.patitaspet.user.repository.FirestoreUserRepository;
@@ -72,6 +73,9 @@ public class UserServiceImpl implements UserService {
         // Usa el nuevo método para establecer la fecha como string formateado
         newUser.setCreatedAtFromDateTime(LocalDateTime.now());
         newUser.setPets(new ArrayList<>());
+
+        // Asignar imagen por defecto al usuario
+        newUser.setPhotoUrl("/uploads/defaults/default-user.png");
 
         // Guardar usuario en Firebase Firestore
         String userId = firestoreUserRepository.saveUser(newUser);
@@ -143,39 +147,117 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("El archivo debe ser una imagen");
         }
 
-        // Buscar el usuario por su ID - Convertir userId a String
-        Optional<User> userOpt = firestoreUserRepository.findUserById(userId.toString());
+        // Buscar el usuario por su ID numérico (no por el ID del documento)
+        Optional<User> userOpt = firestoreUserRepository.findUserByNumericId(userId);
         if (userOpt.isEmpty()) {
-            throw new IllegalArgumentException("Usuario no encontrado");
+            throw new IllegalArgumentException("Usuario no encontrado con ID: " + userId);
         }
 
         User user = userOpt.get();
 
-        // Si el usuario ya tiene una imagen de perfil, eliminarla
-        if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
-            fileStorageService.deleteFile(user.getPhotoUrl());
+        try {
+            // Si el usuario ya tiene una imagen de perfil, intentar eliminarla
+            if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty() &&
+                    !user.getPhotoUrl().contains("default-user.png")) {
+                try {
+                    fileStorageService.deleteFile(user.getPhotoUrl());
+                } catch (Exception e) {
+                    // Si falla la eliminación, solo logueamos el error pero continuamos con la
+                    // actualización
+                    System.out.println("Error al eliminar la imagen anterior: " + e.getMessage());
+                }
+            }
+
+            // Guardar la nueva imagen en el directorio "users"
+            String photoUrl = fileStorageService.storeFile(imageFile, "users");
+            user.setPhotoUrl(photoUrl);
+
+            // Actualizar el usuario en la base de datos
+            firestoreUserRepository.updateUser(user);
+
+            return user;
+        } catch (IOException e) {
+            throw new IOException("Error al procesar la imagen: " + e.getMessage(), e);
+        } catch (Exception e) {
+            throw new RuntimeException("Error inesperado al actualizar la imagen de perfil: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public String getProfileImageUrl(Long userId) {
+        // Buscar el usuario por su ID numérico
+        Optional<User> userOpt = firestoreUserRepository.findUserByNumericId(userId);
+        if (userOpt.isEmpty()) {
+            throw new IllegalArgumentException("Usuario no encontrado con ID: " + userId);
         }
 
-        // Guardar la nueva imagen en el directorio "users"
-        String photoUrl = fileStorageService.storeFile(imageFile, "users");
-        user.setPhotoUrl(photoUrl);
+        User user = userOpt.get();
 
-        // Actualizar el usuario en la base de datos
+        // Si el usuario no tiene foto o es vacía, devolvemos la imagen por defecto
+        if (user.getPhotoUrl() == null || user.getPhotoUrl().isEmpty()) {
+            return "/uploads/defaults/default-user.png";
+        }
+
+        return user.getPhotoUrl();
+    }
+
+    @Override
+    public User updateUserProfile(Long userId, UserUpdateRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("La solicitud de actualización no puede ser nula");
+        }
+
+        // Buscar el usuario por su ID numérico
+        Optional<User> userOpt = firestoreUserRepository.findUserByNumericId(userId);
+        if (userOpt.isEmpty()) {
+            throw new IllegalArgumentException("Usuario no encontrado con ID: " + userId);
+        }
+
+        User user = userOpt.get();
+
+        // Actualizar campos solo si están presentes en la solicitud
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            user.setName(request.getName().trim());
+        }
+
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            // Simple validación de número telefónico (solo dígitos, paréntesis, guiones y
+            // espacios)
+            if (!request.getPhoneNumber().matches("[\\d\\s\\(\\)\\-\\+]+")) {
+                throw new IllegalArgumentException("Formato de número telefónico inválido");
+            }
+            user.setPhoneNumber(request.getPhoneNumber().trim());
+        }
+
+        // Campos opcionales - si están vacíos, se mantienen como estaban
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress().trim());
+        }
+
+        if (request.getBirthDate() != null && !request.getBirthDate().trim().isEmpty()) {
+            try {
+                // La validación se hace en el método setBirthDate de la entidad User
+                user.setBirthDate(request.getBirthDate().trim());
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Formato de fecha de nacimiento inválido. Use dd/MM/yyyy");
+            }
+        }
+
+        // Guardar el usuario actualizado en la base de datos
         firestoreUserRepository.updateUser(user);
 
         return user;
     }
 
     @Override
-    public String getProfileImageUrl(Long userId) {
-        // Convertir userId a String
-        Optional<User> userOpt = firestoreUserRepository.findUserById(userId.toString());
+    public User getUserById(Long userId) {
+        // Buscar el usuario por su ID numérico
+        Optional<User> userOpt = firestoreUserRepository.findUserByNumericId(userId);
         if (userOpt.isEmpty()) {
-            throw new IllegalArgumentException("Usuario no encontrado");
+            throw new IllegalArgumentException("Usuario no encontrado con ID: " + userId);
         }
 
-        User user = userOpt.get();
-        return user.getPhotoUrl();
+        return userOpt.get();
     }
 
     private boolean isValidEmail(String email) {

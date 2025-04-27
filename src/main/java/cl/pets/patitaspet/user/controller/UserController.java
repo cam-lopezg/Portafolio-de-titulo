@@ -3,6 +3,7 @@ package cl.pets.patitaspet.user.controller;
 import cl.pets.patitaspet.user.dto.UserLoginRequest;
 import cl.pets.patitaspet.user.dto.UserLoginResponse;
 import cl.pets.patitaspet.user.dto.UserRegisterRequest;
+import cl.pets.patitaspet.user.dto.UserUpdateRequest;
 import cl.pets.patitaspet.user.entity.User;
 import cl.pets.patitaspet.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +85,23 @@ public class UserController {
             @PathVariable Long userId,
             @RequestParam("image") MultipartFile image) {
         try {
+            // Verificación básica del archivo de imagen
+            if (image == null || image.isEmpty()) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "No se ha proporcionado ninguna imagen");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            }
+
+            // Verificación del tipo de contenido
+            String contentType = image.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "El archivo debe ser una imagen válida (tipo: " + contentType + ")");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            }
+
             User updatedUser = userService.updateProfileImage(userId, image);
 
             Map<String, Object> response = new HashMap<>();
@@ -101,6 +119,13 @@ public class UserController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "Error al procesar la imagen: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        } catch (Exception e) {
+            // Capturar cualquier otra excepción no manejada
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error inesperado: " + e.getMessage());
+            e.printStackTrace(); // Imprime el stack trace para depuración
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
@@ -129,6 +154,70 @@ public class UserController {
             Map<String, Object> errorResponse = new HashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "Error al obtener imagen: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Endpoint para obtener la información de un usuario
+     * 
+     * @param userId ID del usuario
+     * @return Información completa del usuario
+     */
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> getUserById(@PathVariable Long userId) {
+        try {
+            User user = userService.getUserById(userId);
+
+            // Omitir información sensible como la contraseña hash
+            user.setPasswordHash(null);
+
+            return ResponseEntity.ok(user);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al obtener información del usuario: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    /**
+     * Endpoint para actualizar la información de un usuario
+     * 
+     * @param userId  ID del usuario
+     * @param request Datos de actualización del usuario
+     * @return Usuario actualizado
+     */
+    @PutMapping("/{userId}")
+    public ResponseEntity<?> updateUserProfile(
+            @PathVariable Long userId,
+            @RequestBody UserUpdateRequest request) {
+        try {
+            User updatedUser = userService.updateUserProfile(userId, request);
+
+            // Omitir información sensible como la contraseña hash
+            updatedUser.setPasswordHash(null);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Perfil actualizado exitosamente");
+            response.put("user", updatedUser);
+
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al actualizar el perfil: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
