@@ -1,5 +1,6 @@
 package cl.pets.patitaspet.user.service;
 
+import cl.pets.patitaspet.common.service.FileStorageService;
 import cl.pets.patitaspet.common.util.JwtTokenUtil;
 import cl.pets.patitaspet.common.util.PasswordEncoder;
 import cl.pets.patitaspet.user.dto.UserLoginRequest;
@@ -10,7 +11,9 @@ import cl.pets.patitaspet.user.entity.UserLogin;
 import cl.pets.patitaspet.user.repository.FirestoreUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -21,14 +24,17 @@ public class UserServiceImpl implements UserService {
     private final FirestoreUserRepository firestoreUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenUtil;
+    private final FileStorageService fileStorageService;
 
     @Autowired
     public UserServiceImpl(FirestoreUserRepository firestoreUserRepository,
             PasswordEncoder passwordEncoder,
-            JwtTokenUtil jwtTokenUtil) {
+            JwtTokenUtil jwtTokenUtil,
+            FileStorageService fileStorageService) {
         this.firestoreUserRepository = firestoreUserRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenUtil = jwtTokenUtil;
+        this.fileStorageService = fileStorageService;
     }
 
     @Override
@@ -122,6 +128,54 @@ public class UserServiceImpl implements UserService {
         response.setToken(token);
 
         return response;
+    }
+
+    @Override
+    public User updateProfileImage(Long userId, MultipartFile imageFile) throws IOException {
+        // Verificar que el archivo no sea nulo
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new IllegalArgumentException("La imagen no puede estar vacía");
+        }
+
+        // Validar que el archivo sea una imagen
+        String contentType = imageFile.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("El archivo debe ser una imagen");
+        }
+
+        // Buscar el usuario por su ID - Convertir userId a String
+        Optional<User> userOpt = firestoreUserRepository.findUserById(userId.toString());
+        if (userOpt.isEmpty()) {
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
+
+        User user = userOpt.get();
+
+        // Si el usuario ya tiene una imagen de perfil, eliminarla
+        if (user.getPhotoUrl() != null && !user.getPhotoUrl().isEmpty()) {
+            fileStorageService.deleteFile(user.getPhotoUrl());
+        }
+
+        // Guardar la nueva imagen en el directorio "users"
+        String photoUrl = fileStorageService.storeFile(imageFile, "users");
+        user.setPhotoUrl(photoUrl);
+
+        // Actualizar el usuario en la base de datos
+        firestoreUserRepository.updateUser(user);
+
+        return user;
+    }
+
+    @Override
+    public String getProfileImageUrl(Long userId) {
+        // Convertir userId a String
+        Optional<User> userOpt = firestoreUserRepository.findUserById(userId.toString());
+        if (userOpt.isEmpty()) {
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
+
+        User user = userOpt.get();
+        return user.getPhotoUrl();
     }
 
     private boolean isValidEmail(String email) {

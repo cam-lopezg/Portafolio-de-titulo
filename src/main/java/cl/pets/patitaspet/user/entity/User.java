@@ -15,6 +15,7 @@ public class User {
     private String name;
     private String email;
     private String passwordHash;
+    private String photoUrl; // Campo agregado para almacenar la URL de la imagen del usuario
     private String createdAt; // Cambie de LocalDateTime a String para mejor compatibilidad con Firestore, si
                               // no daba error al guardar los usuarios
     private List<Pet> pets;

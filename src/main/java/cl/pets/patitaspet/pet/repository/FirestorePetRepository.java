@@ -178,4 +178,40 @@ public class FirestorePetRepository {
             throw new RuntimeException("Error al eliminar mascota de Firestore", e);
         }
     }
+
+    /**
+     * Actualiza una mascota existente en Firestore
+     * 
+     * @param pet La mascota con los datos actualizados
+     */
+    public void updatePet(Pet pet) {
+        logger.info("Actualizando mascota con ID: " + pet.getId());
+        try {
+            // Buscar el documento de la mascota por su ID numérico
+            Query query = firestore.collection(COLLECTION_NAME).whereEqualTo("id", pet.getId()).limit(1);
+
+            ApiFuture<QuerySnapshot> future = query.get();
+            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+
+            if (!documents.isEmpty()) {
+                String documentId = documents.get(0).getId();
+                logger.info("Documento encontrado para mascota con ID numérico: " + pet.getId() + ", Document ID: "
+                        + documentId);
+
+                // Actualizar el documento
+                ApiFuture<WriteResult> writeResult = firestore.collection(COLLECTION_NAME)
+                        .document(documentId)
+                        .set(pet);
+
+                WriteResult result = writeResult.get();
+                logger.info("Mascota actualizada con éxito. Timestamp: " + result.getUpdateTime());
+            } else {
+                logger.warning("No se pudo encontrar el documento para la mascota con ID: " + pet.getId());
+                throw new RuntimeException("No se pudo encontrar la mascota con ID: " + pet.getId());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            logger.log(Level.SEVERE, "Error al actualizar mascota en Firestore: " + e.getMessage(), e);
+            throw new RuntimeException("Error al actualizar mascota en Firestore", e);
+        }
+    }
 }

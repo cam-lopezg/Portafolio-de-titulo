@@ -68,3 +68,7 @@ release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
+
+# Ignorar contenido de la carpeta uploads pero mantener la carpeta
+/uploads/*
+!/uploads/.gitkeep

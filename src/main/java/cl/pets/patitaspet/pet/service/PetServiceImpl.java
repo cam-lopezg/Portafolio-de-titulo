@@ -1,5 +1,6 @@
 package cl.pets.patitaspet.pet.service;
 
+import cl.pets.patitaspet.common.service.FileStorageService;
 import cl.pets.patitaspet.common.util.DateUtil;
 import cl.pets.patitaspet.pet.dto.PetCreateRequest;
 import cl.pets.patitaspet.pet.dto.PetResponse;
@@ -11,7 +12,9 @@ import cl.pets.patitaspet.user.repository.FirestoreUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,11 +34,16 @@ public class PetServiceImpl implements PetService {
 
     private final FirestorePetRepository petRepository;
     private final FirestoreUserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
     @Autowired
-    public PetServiceImpl(FirestorePetRepository petRepository, FirestoreUserRepository userRepository) {
+    public PetServiceImpl(
+            FirestorePetRepository petRepository,
+            FirestoreUserRepository userRepository,
+            FileStorageService fileStorageService) {
         this.petRepository = petRepository;
         this.userRepository = userRepository;
+        this.fileStorageService = fileStorageService;
         logger.info("PetServiceImpl inicializado");
     }
 
@@ -312,5 +320,98 @@ public class PetServiceImpl implements PetService {
             logger.log(Level.SEVERE, "Error inesperado al buscar mascota", e);
             throw new RuntimeException("Error al buscar mascota: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public Pet updatePetImage(Long petId, String userEmail, MultipartFile imageFile) throws IOException {
+        logger.info("Actualizando imagen para mascota con ID: " + petId + ", usuario: " + userEmail);
+
+        // Validar archivo
+        if (imageFile == null || imageFile.isEmpty()) {
+            logger.warning("Archivo de imagen es nulo o vacío");
+            throw new IllegalArgumentException("La imagen no puede estar vacía");
+        }
+
+        // Validar que el archivo sea una imagen
+        String contentType = imageFile.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            logger.warning("El archivo no es una imagen válida. Content-Type: " + contentType);
+            throw new IllegalArgumentException("El archivo debe ser una imagen");
+        }
+
+        // Verificar el usuario
+        Optional<User> userOpt = userRepository.findUserByEmail(userEmail);
+        if (userOpt.isEmpty()) {
+            logger.warning("No se encontró el usuario con email: " + userEmail);
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
+
+        User user = userOpt.get();
+        logger.info("Usuario verificado: " + user.getId());
+
+        // Buscar la mascota por su ID numérico en lugar del Document ID
+        Optional<Pet> petOpt = petRepository.findPetByNumericId(petId);
+        if (petOpt.isEmpty()) {
+            logger.warning("No se encontró mascota con ID: " + petId);
+            throw new IllegalArgumentException("Mascota no encontrada");
+        }
+
+        Pet pet = petOpt.get();
+
+        // Verificar que la mascota pertenece al usuario
+        if (!pet.getUserId().equals(user.getId())) {
+            logger.warning("El usuario " + user.getId() + " no es dueño de la mascota " + petId);
+            throw new AccessDeniedException("No tienes permiso para modificar esta mascota");
+        }
+
+        // Si la mascota ya tiene una imagen, eliminarla
+        if (pet.getPhotoUrl() != null && !pet.getPhotoUrl().isEmpty()) {
+            logger.info("Eliminando imagen anterior: " + pet.getPhotoUrl());
+            fileStorageService.deleteFile(pet.getPhotoUrl());
+        }
+
+        // Guardar la nueva imagen en el directorio "pets"
+        String photoUrl = fileStorageService.storeFile(imageFile, "pets");
+        logger.info("Nueva imagen guardada: " + photoUrl);
+
+        // Actualizar la URL de la imagen en la mascota
+        pet.setPhotoUrl(photoUrl);
+
+        // Guardar los cambios en la base de datos
+        petRepository.updatePet(pet);
+        logger.info("Mascota actualizada con nueva imagen: " + pet.getId());
+
+        return pet;
+    }
+
+    @Override
+    public String getPetImageUrl(Long petId, String userEmail) {
+        logger.info("Obteniendo URL de imagen para mascota: " + petId);
+
+        // Verificar el usuario
+        Optional<User> userOpt = userRepository.findUserByEmail(userEmail);
+        if (userOpt.isEmpty()) {
+            logger.warning("No se encontró el usuario con email: " + userEmail);
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
+
+        User user = userOpt.get();
+
+        // Buscar la mascota por su ID numérico para ser consistente
+        Optional<Pet> petOpt = petRepository.findPetByNumericId(petId);
+        if (petOpt.isEmpty()) {
+            logger.warning("No se encontró mascota con ID: " + petId);
+            throw new IllegalArgumentException("Mascota no encontrada");
+        }
+
+        Pet pet = petOpt.get();
+
+        // Verificar que la mascota pertenece al usuario
+        if (!pet.getUserId().equals(user.getId())) {
+            logger.warning("El usuario " + user.getId() + " no es dueño de la mascota " + petId);
+            throw new AccessDeniedException("No tienes permiso para acceder a esta mascota");
+        }
+
+        return pet.getPhotoUrl();
     }
 }
