@@ -1,28 +1,16 @@
-package cl.pets.patitaspet.appointment.entity;
+package cl.pets.patitaspet.appointment.dto;
 
-import lombok.Getter;
-import lombok.Setter;
 import cl.pets.patitaspet.pet.entity.Pet;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+public class AppointmentCreateRequest {
 
-public class PetAppointment {
-    private Long id;
+    //Pet pet, String title, LocalDate appointmentDate, String location, String notes
+
     private Pet pet;
     private String title;
     private String appointmentDate;
-    private String location;
     private String notes;
-    private LocalDateTime createdAt;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Pet getPet() {
         return pet;
@@ -48,27 +36,11 @@ public class PetAppointment {
         this.appointmentDate = appointmentDate;
     }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
     public String getNotes() {
         return notes;
     }
 
     public void setNotes(String notes) {
         this.notes = notes;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }
