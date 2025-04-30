@@ -1,7 +1,7 @@
 package cl.pets.patitaspet.appointment.service;
 
 import cl.pets.patitaspet.appointment.entity.PetAppointment;
-import cl.pets.patitaspet.appointment.repository.FirestoreAppointmentRepository;
+import cl.pets.patitaspet.appointment.repository.FirestoreAppointmentRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +10,10 @@ import java.util.List;
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
 
-    private final FirestoreAppointmentRepository firestoreAppointmentRepository;
+    private final FirestoreAppointmentRepositoryImpl firestoreAppointmentRepository;
 
     @Autowired
-    public AppointmentServiceImpl(FirestoreAppointmentRepository firestoreAppointmentRepository) {
+    public AppointmentServiceImpl(FirestoreAppointmentRepositoryImpl firestoreAppointmentRepository) {
         this.firestoreAppointmentRepository = firestoreAppointmentRepository;
     }
 
