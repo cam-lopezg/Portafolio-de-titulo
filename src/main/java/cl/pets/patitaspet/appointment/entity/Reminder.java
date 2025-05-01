@@ -8,8 +8,6 @@ import cl.pets.patitaspet.pet.entity.Pet;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 public class Reminder {
     private Long id;
     private User user;
@@ -19,4 +17,71 @@ public class Reminder {
     private LocalDate reminderDate;
     private Boolean isRecurring;
     private LocalDateTime createdAt;
+
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public Pet getPet() {
+        return pet;
+    }
+
+    public void setPet(Pet pet) {
+        this.pet = pet;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public LocalDate getReminderDate() {
+        return reminderDate;
+    }
+
+    public void setReminderDate(LocalDate reminderDate) {
+        this.reminderDate = reminderDate;
+    }
+
+    public Boolean getRecurring() {
+        return isRecurring;
+    }
+
+    public void setRecurring(Boolean recurring) {
+        isRecurring = recurring;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+
 }
