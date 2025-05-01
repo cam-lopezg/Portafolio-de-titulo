@@ -67,11 +67,11 @@ public class Reminder {
         this.reminderDate = reminderDate;
     }
 
-    public Boolean getRecurring() {
+    public Boolean getIsRecurring() {
         return isRecurring;
     }
 
-    public void setRecurring(Boolean recurring) {
+    public void setIsRecurring(Boolean recurring) {
         isRecurring = recurring;
     }
 
