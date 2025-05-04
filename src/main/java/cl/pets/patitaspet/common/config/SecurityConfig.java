@@ -10,7 +10,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.http.HttpMethod;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -23,26 +27,36 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Desactivar CSRF para API REST
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ CORS aquí
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No usar sesiones
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints públicos (no requieren autenticación)
                         .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        // Permitir acceso a los endpoints para subir imágenes (solo para pruebas)
                         .requestMatchers("/api/pets/with-image").permitAll()
                         .requestMatchers("/api/pets/{id}/image").permitAll()
                         .requestMatchers("/api/users/{id}/profile-image").permitAll()
-                        // Permitir acceso a recursos estáticos
                         .requestMatchers("/uploads/**").permitAll()
-                        // Todos los demás endpoints requieren autenticación
                         .anyRequest().authenticated());
 
-        // Añadir nuestro filtro JWT antes del filtro
-        // UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * ✅ Configuración de CORS para permitir solicitudes desde el frontend Ionic
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:8100"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
