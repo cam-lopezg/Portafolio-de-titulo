@@ -33,7 +33,6 @@ public class SecurityConfig {
                         // Permitir acceso a los endpoints para subir imágenes (solo para pruebas)
                         .requestMatchers("/api/pets/with-image").permitAll()
                         .requestMatchers("/api/pets/{id}/image").permitAll()
-                        .requestMatchers("/api/users/{id}/profile-image").permitAll()
                         // Permitir acceso a recursos estáticos
                         .requestMatchers("/uploads/**").permitAll()
                         // Todos los demás endpoints requieren autenticación

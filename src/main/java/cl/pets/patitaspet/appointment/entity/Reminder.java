@@ -14,9 +14,9 @@ public class Reminder {
     private Long petId; // puede ser null si aun no existe la mascota
     private String title;
     private String description;
-    private LocalDate reminderDate;
+    private String reminderDate;
     private Boolean isRecurring;
-    private LocalDateTime createdAt;
+    private String createdAt;
     private String fcmToken;
 
 
@@ -60,11 +60,11 @@ public class Reminder {
         this.title = title;
     }
 
-    public LocalDate getReminderDate() {
+    public String getReminderDate() {
         return reminderDate;
     }
 
-    public void setReminderDate(LocalDate reminderDate) {
+    public void setReminderDate(String reminderDate) {
         this.reminderDate = reminderDate;
     }
 
@@ -76,11 +76,11 @@ public class Reminder {
         isRecurring = recurring;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 

@@ -33,9 +33,9 @@ public class ReminderController {
         reminder.setPet(request.getPetId()); // puede ser null
         reminder.setTitle(request.getTitle());
         reminder.setDescription(request.getDescription());
-        reminder.setReminderDate(request.getReminderDate());
+        reminder.setReminderDate(request.getReminderDate().toString());
         reminder.setIsRecurring(request.getRecurring());
-        reminder.setCreatedAt(LocalDateTime.now());
+        reminder.setCreatedAt(LocalDateTime.now().toString());
 
         Long reminderId = reminderService.saveReminder(reminder);
 

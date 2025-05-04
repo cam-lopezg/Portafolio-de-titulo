@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -93,13 +95,12 @@ public class FirestoreUserRepository {
 
     public Optional<User> findUserByEmail(String email) {
         try {
-            // Crear consulta para buscar usuario por email
             ApiFuture<QuerySnapshot> future = firestore.collection(COLLECTION_NAME)
                     .whereEqualTo("email", email)
                     .limit(1)
                     .get();
 
-            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
+            List<QueryDocumentSnapshot> documents = future.get(5, TimeUnit.SECONDS).getDocuments();
 
             if (!documents.isEmpty()) {
                 User user = documents.get(0).toObject(User.class);
@@ -108,9 +109,15 @@ public class FirestoreUserRepository {
                 return Optional.empty();
             }
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Error al buscar usuario por email en Firestore", e);
+            // Log detallado
+            System.err.println("⚠️ Error en Firestore: " + e.getMessage());
+            return Optional.empty(); // para no frenar el proceso de registro
+        } catch (TimeoutException e) {
+            System.err.println("⏱ Timeout al consultar Firestore.");
+            return Optional.empty();
         }
     }
+
 
     public void deleteUser(String userId) {
         try {

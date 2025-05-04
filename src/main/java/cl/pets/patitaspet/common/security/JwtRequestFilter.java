@@ -36,6 +36,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         final String requestTokenHeader = request.getHeader("Authorization");
 
+        System.out.println(requestTokenHeader);
+
         String email = null;
         String jwtToken = null;
 
@@ -44,6 +46,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             jwtToken = requestTokenHeader.substring(7);
             try {
                 email = jwtTokenUtil.getEmailFromToken(jwtToken);
+                System.out.println(email);
             } catch (IllegalArgumentException e) {
                 logger.error("No se pudo obtener el token JWT");
             } catch (ExpiredJwtException e) {

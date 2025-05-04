@@ -17,14 +17,14 @@ import java.util.function.Function;
 @Component
 public class JwtTokenUtil {
 
-    // Tiempo de validez del token en milisegundos (2 semanas)
+
     private static final long JWT_TOKEN_VALIDITY = 14 * 24 * 60 * 60 * 1000;
 
-    // Clave secreta para firma de tokens
-    // En un ambiente de producción, esto debería estar en un archivo de
-    // configuración seguro
-    private Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key;
 
+    public JwtTokenUtil(@Value("${jwt.secret}") String secret) {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
     /**
      * Genera un token JWT para el usuario especificado
      */

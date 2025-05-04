@@ -14,7 +14,7 @@ public class PetAppointment {
     private String appointmentDate;
     private String location;
     private String notes;
-    private LocalDateTime createdAt;
+    private String createdAt;
     private String fcmToken; // ✅
 
     public String getFcmToken() {
@@ -73,11 +73,11 @@ public class PetAppointment {
         this.notes = notes;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
 }
