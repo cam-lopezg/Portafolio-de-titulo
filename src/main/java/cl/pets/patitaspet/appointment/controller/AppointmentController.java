@@ -33,7 +33,7 @@ public class AppointmentController {
         appointment.setTitle(request.getTitle());
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setNotes(request.getNotes());
-        appointment.setCreatedAt(LocalDateTime.now());
+        appointment.setCreatedAt(LocalDateTime.now().toString());
         appointment.setFcmToken(request.getFcmToken()); // nuevo
 
 
