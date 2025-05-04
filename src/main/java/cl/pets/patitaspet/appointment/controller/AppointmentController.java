@@ -34,6 +34,8 @@ public class AppointmentController {
         appointment.setAppointmentDate(request.getAppointmentDate());
         appointment.setNotes(request.getNotes());
         appointment.setCreatedAt(LocalDateTime.now());
+        appointment.setFcmToken(request.getFcmToken()); // nuevo
+
 
         Long appointmentId = appointmentService.saveAppointment(appointment);
 

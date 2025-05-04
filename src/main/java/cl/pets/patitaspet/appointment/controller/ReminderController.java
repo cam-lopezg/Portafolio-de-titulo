@@ -26,15 +26,15 @@ public class ReminderController {
 
     @PostMapping
     public String createReminder(@RequestBody ReminderCreateRequest request) {
-        validateReminderData(request.getUser(), request.getTitle(), request.getReminderDate());
+        validateReminderData(request.getUserId(), request.getTitle(), request.getReminderDate());
 
         Reminder reminder = new Reminder();
-        reminder.setUser(request.getUser());
-        reminder.setPet(request.getPet()); // puede ser null
+        reminder.setUserId(request.getUserId());
+        reminder.setPet(request.getPetId()); // puede ser null
         reminder.setTitle(request.getTitle());
         reminder.setDescription(request.getDescription());
         reminder.setReminderDate(request.getReminderDate());
-        reminder.setIsRecurring(request.getIsRecurring());
+        reminder.setIsRecurring(request.getRecurring());
         reminder.setCreatedAt(LocalDateTime.now());
 
         Long reminderId = reminderService.saveReminder(reminder);
@@ -47,8 +47,8 @@ public class ReminderController {
         return reminderService.getAllReminders();
     }
 
-    private void validateReminderData(User user, String title, LocalDate reminderDate) {
-        if (user == null || user.getId() == null) {
+    private void validateReminderData(long userId, String title, LocalDate reminderDate) {
+        if (userId == 0) {
             throw new IllegalArgumentException("Debe especificar un usuario válido.");
         }
         if (title == null || title.trim().isEmpty()) {

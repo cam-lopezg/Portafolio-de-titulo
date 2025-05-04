@@ -28,7 +28,7 @@ public class FirestoreReminderRepositoryImpl implements FirestoreReminderReposit
     @Override
     public String saveReminder(Reminder reminder) {
         logger.info("Iniciando guardado de recordatorio para usuario ID: " +
-                (reminder.getUser() != null ? reminder.getUser().getId() : "desconocido"));
+                (reminder.getUserId() != null ? reminder.getUserId() : "desconocido"));
 
         try {
             DocumentReference docRef = firestore.collection(COLLECTION_NAME).document();

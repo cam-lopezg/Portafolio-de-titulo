@@ -1,6 +1,7 @@
 package cl.pets.patitaspet.appointment.dto;
 
 
+import cl.pets.patitaspet.appointment.entity.Reminder;
 import cl.pets.patitaspet.pet.entity.Pet;
 import cl.pets.patitaspet.user.entity.User;
 
@@ -8,27 +9,31 @@ import java.time.LocalDate;
 
 public class ReminderCreateRequest {
 
-    private User user;
-    private Pet pet; // puede ser null
+    private Long userId;
+    private Long petId;
     private String title;
     private String description;
     private LocalDate reminderDate;
     private Boolean isRecurring;
+    private String fcmToken; // 🔔 Necesario para notificaciones
 
-    public User getUser() {
-        return user;
+    // Getters y Setters...
+
+
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public Pet getPet() {
-        return pet;
+    public Long getPetId() {
+        return petId;
     }
 
-    public void setPet(Pet pet) {
-        this.pet = pet;
+    public void setPetId(Long petId) {
+        this.petId = petId;
     }
 
     public String getTitle() {
@@ -55,12 +60,22 @@ public class ReminderCreateRequest {
         this.reminderDate = reminderDate;
     }
 
-    public Boolean getIsRecurring() {
+    public Boolean getRecurring() {
         return isRecurring;
     }
 
-    public void setIsRecurring(Boolean isRecurring) {
-        this.isRecurring = isRecurring;
+    public void setRecurring(Boolean recurring) {
+        isRecurring = recurring;
     }
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
+    
 }
+
 

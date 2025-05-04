@@ -15,6 +15,15 @@ public class PetAppointment {
     private String location;
     private String notes;
     private LocalDateTime createdAt;
+    private String fcmToken; // ✅
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 
     public Long getId() {
         return id;

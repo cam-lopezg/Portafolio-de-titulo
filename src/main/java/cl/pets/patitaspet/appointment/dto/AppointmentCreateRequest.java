@@ -10,7 +10,16 @@ public class AppointmentCreateRequest {
     private String title;
     private String appointmentDate;
     private String notes;
+    private String fcmToken; // ✅ nuevo campo
 
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 
     public Pet getPet() {
         return pet;

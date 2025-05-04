@@ -10,13 +10,14 @@ import java.time.LocalDateTime;
 
 public class Reminder {
     private Long id;
-    private User user;
-    private Pet pet; // puede ser null si aun no existe la mascota
+    private Long userId;
+    private Long petId; // puede ser null si aun no existe la mascota
     private String title;
     private String description;
     private LocalDate reminderDate;
     private Boolean isRecurring;
     private LocalDateTime createdAt;
+    private String fcmToken;
 
 
     public String getDescription() {
@@ -35,20 +36,20 @@ public class Reminder {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    public Pet getPet() {
-        return pet;
+    public Long getPet() {
+        return petId;
     }
 
-    public void setPet(Pet pet) {
-        this.pet = pet;
+    public void setPet(Long petId) {
+        this.petId = petId;
     }
 
     public String getTitle() {
@@ -84,4 +85,11 @@ public class Reminder {
     }
 
 
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
 }
