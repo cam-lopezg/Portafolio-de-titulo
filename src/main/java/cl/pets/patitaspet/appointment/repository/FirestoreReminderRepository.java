@@ -8,6 +8,7 @@ import java.util.List;
 public interface FirestoreReminderRepository {
     String saveReminder(Reminder reminder);
     List<Reminder> findAllReminders();
+    void deleteReminder(Long id);
 }
 
 

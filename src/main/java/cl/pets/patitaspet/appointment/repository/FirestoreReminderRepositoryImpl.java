@@ -74,4 +74,30 @@ public class FirestoreReminderRepositoryImpl implements FirestoreReminderReposit
             throw new RuntimeException("Error al recuperar recordatorios", e);
         }
     }
+
+    @Override
+    public void deleteReminder(Long id) {
+        try {
+            Query query = firestore.collection(COLLECTION_NAME)
+                    .whereEqualTo("id", id)
+                    .limit(1);
+            ApiFuture<QuerySnapshot> future = query.get();
+            List<QueryDocumentSnapshot> docs = future.get().getDocuments();
+            if (docs.isEmpty()) {
+                throw new IllegalArgumentException("No se encontró recordatorio con ID: " + id);
+            }
+            String docId = docs.get(0).getId();
+            ApiFuture<WriteResult> writeResult = firestore.collection(COLLECTION_NAME)
+                    .document(docId)
+                    .delete();
+            writeResult.get();
+            logger.info("Recordatorio eliminado. Doc ID: " + docId);
+        } catch (InterruptedException | ExecutionException e) {
+            logger.log(Level.SEVERE, "Error al eliminar recordatorio", e);
+            throw new RuntimeException("Error al eliminar recordatorio", e);
+        }
+    }
+
+
+
 }

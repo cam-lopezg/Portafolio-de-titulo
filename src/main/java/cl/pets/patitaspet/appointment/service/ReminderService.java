@@ -9,6 +9,7 @@ public interface ReminderService {
     Long saveReminder(Reminder reminder);
     List<Reminder> getAllReminders();
 
+    void deleteReminder(Long id);
 
 }
 

@@ -29,6 +29,12 @@ public class ReminderServiceImpl implements ReminderService {
     public List<Reminder> getAllReminders() {
         return reminderRepository.findAllReminders();
     }
+
+    @Override
+    public void deleteReminder(Long id) {
+        reminderRepository.deleteReminder(id);
+    }
+
 }
 
 
