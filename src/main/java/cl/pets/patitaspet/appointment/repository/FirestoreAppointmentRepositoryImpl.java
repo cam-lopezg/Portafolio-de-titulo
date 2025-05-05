@@ -13,13 +13,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 @Repository
-public class FirestoreAppointmentRepositoryImpl implements FirestoreAppointmentRepository{
+public class FirestoreAppointmentRepositoryImpl implements FirestoreAppointmentRepository {
 
     private static final Logger logger = Logger.getLogger(FirestoreAppointmentRepositoryImpl.class.getName());
+    private static final String COLLECTION_NAME = "appointments";
+
     private final Firestore firestore;
-    private final String COLLECTION_NAME = "appointments";
 
     @Autowired
     public FirestoreAppointmentRepositoryImpl(Firestore firestore) {
@@ -29,126 +29,122 @@ public class FirestoreAppointmentRepositoryImpl implements FirestoreAppointmentR
 
     @Override
     public String saveAppointment(PetAppointment appointment) {
-        logger.info("Iniciando guardado de cita para mascota ID: " + appointment.getPet().getId());
+        logger.info("Guardando cita para mascota ID: " + appointment.getPet().getId());
         try {
             DocumentReference docRef = firestore.collection(COLLECTION_NAME).document();
-            logger.info("Documento creado en colección " + COLLECTION_NAME + " con ID: " + docRef.getId());
-
-            // Si no tiene ID, asignar basado en timestamp
             if (appointment.getId() == null) {
+                // Asigna ID numérico basado en timestamp
                 long numericId = System.currentTimeMillis();
                 appointment.setId(numericId);
-                logger.info("ID numérico asignado a la cita: " + numericId);
+                logger.info("ID numérico asignado: " + numericId);
             }
-
-            // Guardar la cita
-            logger.info("Guardando datos de cita en Firestore...");
-
-            ApiFuture<WriteResult> result = docRef.set(appointment);
-            result.get(); // Esperar escritura
-
-            logger.info("Cita guardada exitosamente. Documento ID: " + docRef.getId() + ", timestamp: "
-                    + result.get().getUpdateTime());
+            ApiFuture<WriteResult> writeResult = docRef.set(appointment);
+            writeResult.get(); // esperar a que se complete
+            logger.info("Cita guardada. Documento ID: " + docRef.getId());
             return docRef.getId();
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error al guardar cita en Firestore: " + e.getMessage(), e);
+        } catch (InterruptedException | ExecutionException e) {
+            logger.log(Level.SEVERE, "Error al guardar cita en Firestore", e);
             throw new RuntimeException("Error al guardar cita en Firestore", e);
         }
     }
 
     @Override
     public Optional<PetAppointment> findAppointmentById(String appointmentId) {
-        logger.info("Buscando cita médica por ID: " + appointmentId);
+        logger.info("Buscando cita por ID: " + appointmentId);
         try {
             DocumentReference docRef = firestore.collection(COLLECTION_NAME).document(appointmentId);
             ApiFuture<DocumentSnapshot> future = docRef.get();
-            DocumentSnapshot document = future.get();
-
-            if (document.exists()) {
-                PetAppointment appointment = document.toObject(PetAppointment.class);
-                if (appointment != null) {
-                    logger.info("Cita encontrada: " + appointment.getTitle() + " para mascota ID: " + appointment.getPet().getId());
-                }
+            DocumentSnapshot snapshot = future.get();
+            if (snapshot.exists()) {
+                PetAppointment appointment = snapshot.toObject(PetAppointment.class);
                 return Optional.ofNullable(appointment);
             } else {
                 logger.warning("No se encontró cita con ID: " + appointmentId);
                 return Optional.empty();
             }
         } catch (InterruptedException | ExecutionException e) {
-            logger.log(Level.SEVERE, "Error al buscar cita médica por ID: " + e.getMessage(), e);
-            throw new RuntimeException("Error al buscar cita médica en Firestore", e);
+            logger.log(Level.SEVERE, "Error al buscar cita en Firestore", e);
+            throw new RuntimeException("Error al buscar cita en Firestore", e);
         }
     }
 
     @Override
     public List<PetAppointment> findAppointmentsByPetId(Long petId) {
-        logger.info("Buscando citas médicas para la mascota con ID: " + petId);
+        logger.info("Buscando citas para mascota ID: " + petId);
         try {
-            ApiFuture<QuerySnapshot> future = firestore.collection(COLLECTION_NAME)
-                    .whereEqualTo("pet.id", petId)
-                    .get();
-
-            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-            logger.info("Query completada. Se encontraron " + documents.size() + " citas.");
-
+            Query query = firestore.collection(COLLECTION_NAME)
+                    .whereEqualTo("pet.id", petId);
+            ApiFuture<QuerySnapshot> future = query.get();
+            List<QueryDocumentSnapshot> docs = future.get().getDocuments();
             List<PetAppointment> appointments = new ArrayList<>();
-            for (QueryDocumentSnapshot document : documents) {
-                PetAppointment appointment = document.toObject(PetAppointment.class);
-                if (appointment != null) {
-                    logger.info("Cita encontrada: " + appointment.getTitle());
-                    appointments.add(appointment);
-                } else {
-                    logger.warning("No se pudo convertir documento a PetAppointment: " + document.getId());
+            for (DocumentSnapshot doc : docs) {
+                PetAppointment appt = doc.toObject(PetAppointment.class);
+                if (appt != null) {
+                    appointments.add(appt);
                 }
             }
-
+            System.out.println(appointments.get(0).getId());
             return appointments;
         } catch (InterruptedException | ExecutionException e) {
-            logger.log(Level.SEVERE, "Error al buscar citas médicas para mascota: " + e.getMessage(), e);
-            throw new RuntimeException("Error al buscar citas médicas en Firestore", e);
+            logger.log(Level.SEVERE, "Error al listar citas por mascota", e);
+            throw new RuntimeException("Error al listar citas por mascota", e);
         }
     }
 
     @Override
     public void deleteAppointment(String appointmentId) {
-        logger.info("Iniciando eliminación de cita médica con ID: " + appointmentId);
+        logger.info("Eliminando cita (raw id): " + appointmentId);
         try {
-            ApiFuture<WriteResult> writeResult = firestore.collection(COLLECTION_NAME).document(appointmentId).delete();
-            writeResult.get();
-            logger.info("Cita médica eliminada exitosamente. ID: " + appointmentId + ", timestamp: "
-                    + writeResult.get().getUpdateTime());
+            // Si es un número puro, lo tratamos como tu id interno
+            if (appointmentId != null && appointmentId.matches("\\d+")) {
+                long internalId = Long.parseLong(appointmentId);
+                // Buscamos doc(s) donde el campo "id" == internalId
+                Query query = firestore.collection(COLLECTION_NAME)
+                        .whereEqualTo("id", internalId);
+                ApiFuture<QuerySnapshot> future = query.get();
+                List<QueryDocumentSnapshot> docs = future.get().getDocuments();
+
+                for (DocumentSnapshot doc : docs) {
+                    String docId = doc.getId();
+                    // Borrado por documentId
+                    firestore.collection(COLLECTION_NAME)
+                            .document(docId)
+                            .delete()
+                            .get();
+                    logger.info("Cita eliminada por id interno. Document ID: " + docId);
+                }
+
+            } else {
+                // Si no es puramente numérico, lo tratamos como el documentId
+                firestore.collection(COLLECTION_NAME)
+                        .document(appointmentId)
+                        .delete()
+                        .get();
+                logger.info("Cita eliminada por documentId: " + appointmentId);
+            }
         } catch (InterruptedException | ExecutionException e) {
-            logger.log(Level.SEVERE, "Error al eliminar cita médica en Firestore: " + e.getMessage(), e);
-            throw new RuntimeException("Error al eliminar cita médica en Firestore", e);
+            logger.log(Level.SEVERE, "Error al eliminar cita en Firestore", e);
+            throw new RuntimeException("Error al eliminar cita en Firestore", e);
         }
     }
 
     @Override
     public List<PetAppointment> findAllAppointments() {
-        logger.info("Buscando todas las citas médicas...");
+        logger.info("Listando todas las citas médicas");
         try {
             ApiFuture<QuerySnapshot> future = firestore.collection(COLLECTION_NAME).get();
-            List<QueryDocumentSnapshot> documents = future.get().getDocuments();
-
+            List<QueryDocumentSnapshot> docs = future.get().getDocuments();
             List<PetAppointment> appointments = new ArrayList<>();
-            for (QueryDocumentSnapshot document : documents) {
-                PetAppointment appointment = document.toObject(PetAppointment.class);
-                if (appointment != null) {
-                    appointments.add(appointment);
-                } else {
-                    logger.warning("No se pudo convertir documento a PetAppointment: " + document.getId());
+            for (DocumentSnapshot doc : docs) {
+                PetAppointment appt = doc.toObject(PetAppointment.class);
+                if (appt != null) {
+                    appointments.add(appt);
                 }
             }
-
-            logger.info("Total de citas encontradas: " + appointments.size());
             return appointments;
         } catch (InterruptedException | ExecutionException e) {
-            logger.log(Level.SEVERE, "Error al listar todas las citas médicas: " + e.getMessage(), e);
-            throw new RuntimeException("Error al listar todas las citas médicas en Firestore", e);
+            logger.log(Level.SEVERE, "Error al listar todas las citas en Firestore", e);
+            throw new RuntimeException("Error al listar todas las citas en Firestore", e);
         }
     }
-
 }
-
-
-

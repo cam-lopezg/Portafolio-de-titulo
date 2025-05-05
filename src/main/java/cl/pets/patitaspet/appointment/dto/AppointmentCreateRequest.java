@@ -1,32 +1,27 @@
+// src/main/java/cl/pets/patitaspet/appointment/dto/AppointmentCreateRequest.java
 package cl.pets.patitaspet.appointment.dto;
 
+import cl.pets.patitaspet.appointment.entity.PetAppointment;
 import cl.pets.patitaspet.pet.entity.Pet;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class AppointmentCreateRequest {
 
-    //Pet pet, String title, LocalDate appointmentDate, String location, String notes
-
-    private Pet pet;
+    private Long petId;
     private String title;
-    private String appointmentDate;
+    private String appointmentDate; // ISO-8601 string
     private String notes;
-    private String fcmToken; // ✅ nuevo campo
 
+    // getters y setters...
 
-    public String getFcmToken() {
-        return fcmToken;
+    public Long getPetId() {
+        return petId;
     }
 
-    public void setFcmToken(String fcmToken) {
-        this.fcmToken = fcmToken;
-    }
-
-    public Pet getPet() {
-        return pet;
-    }
-
-    public void setPet(Pet pet) {
-        this.pet = pet;
+    public void setPetId(Long petId) {
+        this.petId = petId;
     }
 
     public String getTitle() {
@@ -51,5 +46,26 @@ public class AppointmentCreateRequest {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public PetAppointment toEntity() {
+        PetAppointment appt = new PetAppointment();
+
+        // 1) Asignamos la mascota con sólo el id
+        Pet pet = new Pet();
+        pet.setId(this.petId);
+        appt.setPet(pet);
+
+        // 2) Rellenamos el resto
+        appt.setTitle(this.title);
+        // parseamos el ISO string a LocalDateTime
+        LocalDateTime dt = LocalDateTime.parse(
+                this.appointmentDate,
+                DateTimeFormatter.ISO_DATE_TIME
+        );
+        appt.setAppointmentDate(dt.toString());
+        appt.setNotes(this.notes);
+
+        return appt;
     }
 }

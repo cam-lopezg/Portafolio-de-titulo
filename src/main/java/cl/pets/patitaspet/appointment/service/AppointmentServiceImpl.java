@@ -10,25 +10,31 @@ import java.util.List;
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
 
-    private final FirestoreAppointmentRepositoryImpl firestoreAppointmentRepository;
+    private final FirestoreAppointmentRepositoryImpl repo;
 
     @Autowired
-    public AppointmentServiceImpl(FirestoreAppointmentRepositoryImpl firestoreAppointmentRepository) {
-        this.firestoreAppointmentRepository = firestoreAppointmentRepository;
+    public AppointmentServiceImpl(FirestoreAppointmentRepositoryImpl repo) {
+        this.repo = repo;
     }
 
     @Override
-    public Long saveAppointment(PetAppointment appointment) {
-        firestoreAppointmentRepository.saveAppointment(appointment);
-        return appointment.getId(); // El ID ya lo asigna Firestore basado en System.currentTimeMillis() o UUID
+    public PetAppointment saveAppointment(PetAppointment appointment) {
+        repo.saveAppointment(appointment);
+        return appointment;
     }
 
     @Override
     public List<PetAppointment> getAllAppointments() {
-        return firestoreAppointmentRepository.findAllAppointments();
+        return repo.findAllAppointments();
+    }
+
+    @Override
+    public List<PetAppointment> getAppointmentsByPet(Long petId) {
+        return repo.findAppointmentsByPetId(petId);
+    }
+
+    @Override
+    public void deleteAppointment(Long appointmentId) {
+        repo.deleteAppointment(appointmentId.toString());
     }
 }
-
-
-
-
