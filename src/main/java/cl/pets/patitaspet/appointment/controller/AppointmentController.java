@@ -32,12 +32,16 @@ public class AppointmentController {
     public Map<String, Object> createAppointment(@RequestBody AppointmentCreateRequest request) {
         // Mapeo y guardado como antes
         PetAppointment appointment = appointmentService.saveAppointment(request.toEntity());
+        appointment.setFcmToken(request.getFcmToken());
+
 
         // Devuelvo un objeto que Spring convierte a JSON
         Map<String, Object> resp = new HashMap<>();
         resp.put("id", appointment.getId());
         resp.put("message", "Cita creada exitosamente");
         return resp;
+
+
     }
     /** Listar todas las citas (para ADMIN u otros) */
     @GetMapping

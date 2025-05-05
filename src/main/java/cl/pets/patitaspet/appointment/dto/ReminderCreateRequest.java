@@ -9,8 +9,19 @@ public class ReminderCreateRequest {
     // Cambiado de LocalDate a String:
     private String reminderDate;
     private Boolean recurring;
+    private String fcmToken;
 
     // getters & setters
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
+
+
+
     public long getUserId() { return userId; }
     public void setUserId(long userId) { this.userId = userId; }
 

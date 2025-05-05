@@ -10,6 +10,15 @@ public class ImportantDate {
     private String date; // formato MM-DD
     private String description;
     private Species species;
+    private String fcmToken;
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 
     public String getDate() {
         return date;

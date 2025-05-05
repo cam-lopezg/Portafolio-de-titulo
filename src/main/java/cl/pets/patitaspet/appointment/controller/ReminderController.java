@@ -50,6 +50,7 @@ public class ReminderController {
         reminder.setReminderDate(request.getReminderDate());
         reminder.setIsRecurring(request.getRecurring());
         reminder.setCreatedAt(LocalDateTime.now().toString());
+        reminder.setFcmToken(request.getFcmToken());
 
         // Persiste y obtiene el ID generado
         Long reminderId = reminderService.saveReminder(reminder);

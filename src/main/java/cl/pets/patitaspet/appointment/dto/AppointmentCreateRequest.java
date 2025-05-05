@@ -13,8 +13,21 @@ public class AppointmentCreateRequest {
     private String title;
     private String appointmentDate; // ISO-8601 string
     private String notes;
+    private String fcmToken;
+
 
     // getters y setters...
+
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
+
+
 
     public Long getPetId() {
         return petId;
